@@ -55,7 +55,7 @@ public class ExtractorMain {
             try {
                 finalMethod.invoke(obj);
             } catch (Exception e) {
-                log.error("Unknown error occurred. Thread will be restarted.", e);
+                log.error("Unknown error occurred. Main thread will be restarted.", e);
             }
         };
 

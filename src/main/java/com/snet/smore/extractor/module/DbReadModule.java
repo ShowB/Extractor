@@ -5,7 +5,7 @@ import com.snet.smore.common.domain.DbInfo;
 import com.snet.smore.common.util.DbUtil;
 import com.snet.smore.common.util.EnvManager;
 import com.snet.smore.common.util.StringUtil;
-import com.snet.smore.extractor.util.FileStatusPrefix;
+import com.snet.smore.common.constant.FileStatusPrefix;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -31,27 +31,27 @@ public class DbReadModule {
         String sort = EnvManager.getProperty("extractor.source.db.pk.sort");
 
         if (StringUtil.isBlank(dbname)) {
-            log.error("Cannot find value [extractor.source.db.name]. Thread will be restarted.");
+            log.error("Cannot find value [extractor.source.db.name]. Job will be restarted.");
             return;
         }
 
         if (StringUtil.isBlank(url)) {
-            log.error("Cannot find value [extractor.source.db.url]. Thread will be restarted.");
+            log.error("Cannot find value [extractor.source.db.url]. Job will be restarted.");
             return;
         }
 
         if (StringUtil.isBlank(tablename)) {
-            log.error("Cannot find value [extractor.source.db.table.name]. Thread will be restarted.");
+            log.error("Cannot find value [extractor.source.db.table.name]. Job will be restarted.");
             return;
         }
 
         if (StringUtil.isBlank(pkname)) {
-            log.error("Cannot find value [extractor.source.db.pk.name]. Thread will be restarted.");
+            log.error("Cannot find value [extractor.source.db.pk.name]. Job will be restarted.");
             return;
         }
 
         if (StringUtil.isBlank(sort)) {
-            log.error("Cannot find value [extractor.source.db.pk.sort]. Thread will be restarted.");
+            log.error("Cannot find value [extractor.source.db.pk.sort]. Job will be restarted.");
             return;
         }
 
@@ -107,7 +107,7 @@ public class DbReadModule {
             countSql = "SELECT COUNT(*) AS COUNT FROM " + tablename + whereClause;
             querySql = "SELECT * FROM " + tablename + whereClause + orderByClause + " LIMIT ?, " + pageCount;
         } else {
-            log.error("Cannot convert value [extractor.source.db.name]. Thread will be restarted.");
+            log.error("Cannot convert value [extractor.source.db.name]. Job will be restarted.");
             return;
         }
 
@@ -132,7 +132,7 @@ public class DbReadModule {
         if (totalCnt > 0)
             log.info("Start to read RDBMS Data.. Targets are {} records.", totalCnt);
         else
-            log.info("There is no target records. Thread will be restarted.");
+            log.info("There is no target records. Job will be restarted.");
 
         JsonObject row = new JsonObject();
         int cnt = 0;
@@ -203,7 +203,7 @@ public class DbReadModule {
     }
 
     private void createFile(String str) {
-        String root = EnvManager.getProperty("extractor.target.dir");
+        String root = EnvManager.getProperty("extractor.target.file.dir");
         String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + ".txt";
         Path newFile = null;
         FileChannel fileChannel = null;

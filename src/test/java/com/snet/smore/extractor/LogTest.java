@@ -1,6 +1,6 @@
 package com.snet.smore.extractor;
 
-import com.snet.smore.extractor.util.FileStatusPrefix;
+import com.snet.smore.common.constant.FileStatusPrefix;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 

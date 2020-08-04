@@ -1,7 +1,7 @@
 package com.snet.smore.extractor.module;
 
 import com.snet.smore.common.util.EnvManager;
-import com.snet.smore.extractor.util.FileStatusPrefix;
+import com.snet.smore.common.constant.FileStatusPrefix;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.DataInputStream;
@@ -81,14 +81,14 @@ public class SocketReceiveModule {
             try {
                 byteSize = Integer.parseInt(EnvManager.getProperty("extractor.source.socket.byte-size"));
             } catch (Exception e) {
-                log.info("Cannot convert value [extractor.source.socket.byte-size]. Thread will be restarted.");
+                log.info("Cannot convert value [extractor.source.socket.byte-size]. Job will be restarted.");
                 return;
             }
 
             long intervalEnd = System.currentTimeMillis() + (intervalTime * 1000);
             byte[] bytes = new byte[byteSize];
 
-            String root = EnvManager.getProperty("extractor.target.dir");
+            String root = EnvManager.getProperty("extractor.target.file.dir");
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + ".bin";
             Path newFile = null;
             FileChannel fileChannel = null;

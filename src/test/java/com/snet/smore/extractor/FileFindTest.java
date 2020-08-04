@@ -1,7 +1,7 @@
 package com.snet.smore.extractor;
 
 import com.snet.smore.common.util.EnvManager;
-import com.snet.smore.extractor.util.FileStatusPrefix;
+import com.snet.smore.common.constant.FileStatusPrefix;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class FileFindTest {
 
         Path source = Paths.get(EnvManager.getProperty("extractor.source.file.dir"));
 
-        List<Path> zip = new ArrayList<>();
+        List<Path> targetFiles = new ArrayList<>();
         try (Stream<Path> pathStream = Files.find(source, Integer.MAX_VALUE,
                 (p, a) -> matcher.matches(p.getFileName())
                         && !p.getFileName().toString().startsWith(FileStatusPrefix.COMPLETE.getPrefix())
@@ -29,12 +29,12 @@ public class FileFindTest {
                         && !p.getFileName().toString().startsWith(FileStatusPrefix.TEMP.getPrefix())
                         && !a.isDirectory()
                         && a.isRegularFile())) {
-            zip = pathStream.collect(Collectors.toList());
+            targetFiles = pathStream.collect(Collectors.toList());
         } catch (Exception e) {
             log.error("An error occurred while finding source files.", e);
         }
 
-        System.out.println(zip.size());
+        System.out.println(targetFiles.size());
 
 
     }

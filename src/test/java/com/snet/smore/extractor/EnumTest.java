@@ -1,6 +1,6 @@
 package com.snet.smore.extractor;
 
-import com.snet.smore.extractor.util.FileStatusPrefix;
+import com.snet.smore.common.constant.FileStatusPrefix;
 import org.junit.Test;
 
 public class EnumTest {

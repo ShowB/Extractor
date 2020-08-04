@@ -1,7 +1,8 @@
 package com.snet.smore.extractor.module;
 
 import com.snet.smore.common.util.EnvManager;
-import com.snet.smore.extractor.util.FileStatusPrefix;
+import com.snet.smore.common.constant.FileStatusPrefix;
+import com.snet.smore.common.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -16,30 +17,17 @@ public class FileCopyModule {
     public void execute() {
         long start = System.currentTimeMillis();
 
+        Path root = Paths.get(EnvManager.getProperty("extractor.source.file.dir"));
         String glob = EnvManager.getProperty("extractor.source.file.glob");
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + glob);
 
-        Path source = Paths.get(EnvManager.getProperty("extractor.source.file.dir"));
-
-        List<Path> zips = new ArrayList<>();
-        try (Stream<Path> pathStream = Files.find(source, Integer.MAX_VALUE,
-                (p, a) -> matcher.matches(p.getFileName())
-                        && !p.getFileName().toString().startsWith(FileStatusPrefix.COMPLETE.getPrefix())
-                        && !p.getFileName().toString().startsWith(FileStatusPrefix.ERROR.getPrefix())
-                        && !p.getFileName().toString().startsWith(FileStatusPrefix.TEMP.getPrefix())
-                        && !a.isDirectory()
-                        && a.isRegularFile())) {
-            zips = pathStream.collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("An error occurred while finding source files.", e);
-        }
+        List<Path> targetFiles = FileUtil.findFiles(root, glob);
 
 
-        int total = zips.size();
+        int total = targetFiles.size();
         int curr = 0;
-        Path targetPrefix = Paths.get(EnvManager.getProperty("extractor.target.dir"));
+        Path targetPrefix = Paths.get(EnvManager.getProperty("extractor.target.file.dir"));
 
-        for (Path p : zips) {
+        for (Path p : targetFiles) {
             if (!Files.isRegularFile(p) || Files.isDirectory(p))
                 continue;
 
@@ -48,7 +36,7 @@ public class FileCopyModule {
             // 1. 파일명 tmp_ 붙이기 (다른 프로세스에서 사용중인 파일인지 확인)
             Path temp;
             try {
-                temp = changeFileStatus(p, FileStatusPrefix.TEMP);
+                temp = FileUtil.changeFileStatus(p, FileStatusPrefix.TEMP);
             } catch (IOException e) {
                 log.error("File is using by another process. {}", p);
                 continue;
@@ -70,7 +58,7 @@ public class FileCopyModule {
                 log.error("An error occurred while copying files. {}", p, e);
 
                 try {
-                    changeFileStatus(temp, FileStatusPrefix.ERROR);
+                    FileUtil.changeFileStatus(temp, FileStatusPrefix.ERROR);
                 } catch (IOException ex) {
                     log.error("An error occurred while changing file name. [{}], {}", FileStatusPrefix.ERROR, p, e);
                 }
@@ -80,12 +68,12 @@ public class FileCopyModule {
 
             // 4. 파일명 앞에 tmp_ 지우고 cmpl_ 붙이기
             try {
-                changeFileStatus(temp, FileStatusPrefix.COMPLETE);
+                FileUtil.changeFileStatus(temp, FileStatusPrefix.COMPLETE);
             } catch (IOException e) {
                 log.error("An error occurred while copying files. {}", p, e);
 
                 try {
-                    changeFileStatus(temp, FileStatusPrefix.ERROR);
+                    FileUtil.changeFileStatus(temp, FileStatusPrefix.ERROR);
                 } catch (IOException ex) {
                     log.error("An error occurred while changing file name. [{}], {}", FileStatusPrefix.ERROR, p, e);
                 }
@@ -116,20 +104,6 @@ public class FileCopyModule {
         }
 
         return sb.toString();
-    }
-
-    private Path changeFileStatus(Path originPath, FileStatusPrefix prefix) throws IOException {
-        String fileName = originPath.getFileName().toString();
-
-        for (FileStatusPrefix f : FileStatusPrefix.values()) {
-            if (fileName.startsWith(f.getPrefix()))
-                fileName = fileName.replace(f.getPrefix(), "");
-        }
-
-        fileName = prefix.getPrefix() + fileName;
-
-        Path changePath = Paths.get(originPath.getParent().toAbsolutePath().toString(), fileName);
-        return Files.move(originPath, changePath);
     }
 
 }
