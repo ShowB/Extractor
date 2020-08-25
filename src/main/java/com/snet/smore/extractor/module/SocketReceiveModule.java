@@ -2,6 +2,7 @@ package com.snet.smore.extractor.module;
 
 import com.snet.smore.common.util.EnvManager;
 import com.snet.smore.common.constant.FileStatusPrefix;
+import com.snet.smore.extractor.main.ExtractorMain;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.DataInputStream;
@@ -25,11 +26,19 @@ public class SocketReceiveModule {
 
             log.info("Socket server started(port: {}). Wait for client ...", port);
 
-            while (true) {
+            while (ExtractorMain.getIsRunningByMonitor()) {
                 Socket client = server.accept();
 
-                if (client != null)
+                if (client != null && ExtractorMain.getIsRunningByMonitor()) {
                     new Thread(new SocketReader(client)).start();
+                } else if (!ExtractorMain.getIsRunningByMonitor()) {
+                    log.info("Signal for server close was received.");
+
+                    if (client != null)
+                        client.close();
+
+                    server.close();
+                }
 
             }
         } catch (Exception e) {
@@ -55,38 +64,14 @@ public class SocketReceiveModule {
 
         @Override
         public void run() {
-            int intervalTime;
-            int intervalTimeDefault = 600;
+            int intervalTime = EnvManager.getProperty("extractor.source.socket.file-create-time", 600);
+            int intervalLine = EnvManager.getProperty("extractor.source.socket.file-create-count", 600);
+            int intervalSize = EnvManager.getProperty("extractor.source.socket.file-create-size", 1024);
 
-            try {
-                intervalTime = Integer.parseInt(EnvManager.getProperty("extractor.source.socket.file-create-time"));
-            } catch (Exception e) {
-                log.info("Cannot convert value [extractor.source.socket.file-create-time]. " +
-                                "System will be set default value: {} (seconds)", intervalTimeDefault);
-                intervalTime = intervalTimeDefault;
-            }
-
-            int intervalLine;
-            int intervalLineDefault = 600;
-            try {
-                intervalLine = Integer.parseInt(EnvManager.getProperty("extractor.source.socket.file-create-line"));
-            } catch (Exception e) {
-                log.info("Cannot convert value [extractor.source.socket.file-create-line]. " +
-                                "System will be set default value: {} (seconds)", intervalLineDefault);
-                intervalLine = intervalLineDefault;
-            }
-
-            int byteSize;
-
-            try {
-                byteSize = Integer.parseInt(EnvManager.getProperty("extractor.source.socket.byte-size"));
-            } catch (Exception e) {
-                log.info("Cannot convert value [extractor.source.socket.byte-size]. Job will be restarted.");
-                return;
-            }
-
+            int streamSize = EnvManager.getProperty("extractor.source.socket.stream-size", 1024);
             long intervalEnd = System.currentTimeMillis() + (intervalTime * 1000);
-            byte[] bytes = new byte[byteSize];
+
+            byte[] bytes = new byte[streamSize];
 
             String root = EnvManager.getProperty("extractor.target.file.dir");
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + ".bin";
@@ -94,36 +79,33 @@ public class SocketReceiveModule {
             FileChannel fileChannel = null;
 
             long lastReceivedTime = System.currentTimeMillis();
-            long timeLimit;
-            long timeLimitDefault = 3600;
-
-            try {
-                timeLimit = Long.parseLong(EnvManager.getProperty("extractor.source.socket.wait-limit"));
-            } catch (Exception e) {
-                log.info("Cannot convert value [extractor.source.socket.file-create-line]. " +
-                                "System will be set default value: {} (seconds)", timeLimitDefault);
-                timeLimit = timeLimitDefault;
-            }
+            int timeLimit = EnvManager.getProperty("extractor.source.socket.wait-limit", 3600);
 
             int count = 0;
 
             try {
                 Files.createDirectories(Paths.get(root));
                 newFile = Files.createFile(Paths.get(root, FileStatusPrefix.TEMP.getPrefix() + fileName));
-                fileChannel = FileChannel.open(newFile, StandardOpenOption.WRITE);
+                fileChannel = FileChannel.open(newFile, StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE
+                        , StandardOpenOption.TRUNCATE_EXISTING);
 
-                while (client.isConnected()) {
-                    if (dis.available() >= byteSize) {
-                        dis.read(bytes, 0, byteSize);
+                while (!client.isClosed()) {
+                    if (dis.available() >= streamSize) {
+                        dis.read(bytes, 0, streamSize);
 
                         ByteBuffer buffer = ByteBuffer.wrap(bytes);
                         fileChannel.write(buffer);
+                        System.out.print(".");
                         buffer.clear();
                         lastReceivedTime = System.currentTimeMillis();
                         count++;
                     }
 
-                    if (count >= intervalLine || System.currentTimeMillis() >= intervalEnd) {
+                    if (count >= intervalLine
+                            || System.currentTimeMillis() >= intervalEnd
+                            || (fileChannel.size() / 1024) >= intervalSize) {
+
                         count = 0;
                         intervalEnd = System.currentTimeMillis() + (intervalTime * 1000);
 
@@ -134,7 +116,9 @@ public class SocketReceiveModule {
                             fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + ".bin";
                             newFile = Files.createFile(Paths.get(root, FileStatusPrefix.TEMP.getPrefix() + fileName));
 
-                            fileChannel = FileChannel.open(newFile, StandardOpenOption.READ, StandardOpenOption.WRITE);
+                            fileChannel = FileChannel.open(newFile, StandardOpenOption.CREATE,
+                                    StandardOpenOption.WRITE
+                                    , StandardOpenOption.TRUNCATE_EXISTING);
                         }
                     }
 
@@ -143,8 +127,12 @@ public class SocketReceiveModule {
                         break;
                     }
 
+                    if (!ExtractorMain.getIsRunningByMonitor()) {
+                        break;
+                    }
 
-                    Thread.sleep(100);
+
+                    Thread.sleep(10);
                 }
 
             } catch (Exception e) {
@@ -162,7 +150,10 @@ public class SocketReceiveModule {
                         fileChannel.close();
 
                     if (dis != null) dis.close();
-                    if (client != null) client.close();
+                    if (client != null) {
+                        log.info("Client socket closed. [{}]", client.getInetAddress());
+                        client.close();
+                    }
                 } catch (IOException e) {
                     log.error("An error occurred while writing file. [{}]", client.getInetAddress(), e);
                 }

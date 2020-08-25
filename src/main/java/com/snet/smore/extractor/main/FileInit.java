@@ -2,6 +2,7 @@ package com.snet.smore.extractor.main;
 
 import com.snet.smore.common.util.EnvManager;
 import com.snet.smore.common.constant.FileStatusPrefix;
+import com.snet.smore.common.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -16,13 +17,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class FileInit {
     public static void main(String[] args) {
-        Path source = Paths.get(EnvManager.getProperty("extractor.source.file.dir"));
-
-        if ("Y".equals(EnvManager.getProperty("extractor.source.file.init-required"))) {
-            initSource(source, FileStatusPrefix.COMPLETE);
-            initSource(source, FileStatusPrefix.ERROR);
-            initSource(source, FileStatusPrefix.TEMP);
-        }
+        FileUtil.initFiles(Paths.get(EnvManager.getProperty("extractor.source.file.dir")));
+//        Path source = Paths.get(EnvManager.getProperty("extractor.source.file.dir"));
+//
+//        if ("Y".equals(EnvManager.getProperty("extractor.source.file.init-required"))) {
+//            initSource(source, FileStatusPrefix.COMPLETE);
+//            initSource(source, FileStatusPrefix.ERROR);
+//            initSource(source, FileStatusPrefix.TEMP);
+//        }
     }
 
     private static void initSource(Path path, FileStatusPrefix prefix) {
