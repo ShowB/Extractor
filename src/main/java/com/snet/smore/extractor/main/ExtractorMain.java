@@ -21,6 +21,7 @@ public class ExtractorMain {
     private static String agentName = EnvManager.getProperty("extractor.name");
 
     private static boolean isRequiredPropertiesUpdate = true;
+    private static boolean isFirstRun = true;
 
     private static ScheduledExecutorService mainService = Executors.newSingleThreadScheduledExecutor();
     private static ScheduledExecutorService monitorForSocketService = Executors.newSingleThreadScheduledExecutor();
@@ -52,13 +53,15 @@ public class ExtractorMain {
 
         isRequiredPropertiesUpdate = Constant.YN_Y.equalsIgnoreCase(agent.getChangeYn());
 
-        if (isRequiredPropertiesUpdate) {
+        if (isRequiredPropertiesUpdate || isFirstRun) {
             EnvManager.reload();
             agentName = EnvManager.getProperty("extractor.name");
 
             log.info("Environment has successfully reloaded.");
 
-            AgentUtil.setChangeYn(agentType, agentName, Constant.YN_N);
+            if ("Y".equalsIgnoreCase(agent.getChangeYn()))
+                AgentUtil.setChangeYn(agentType, agentName, Constant.YN_N);
+
             isRequiredPropertiesUpdate = false;
         }
 
@@ -79,6 +82,9 @@ public class ExtractorMain {
                 log.error("Cannot find extractor module class.");
                 return;
         }
+
+        if (isFirstRun)
+            isFirstRun = false;
     }
 
     private static void monitorForSocket() {

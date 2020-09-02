@@ -79,7 +79,7 @@ public class SocketReceiveModule {
             FileChannel fileChannel = null;
 
             long lastReceivedTime = System.currentTimeMillis();
-            int timeLimit = EnvManager.getProperty("extractor.source.socket.wait-limit", 3600);
+            int timeLimit = EnvManager.getProperty("extractor.source.socket.wait-time-limit", 3600);
 
             int count = 0;
 

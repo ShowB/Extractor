@@ -1,5 +1,6 @@
 package com.snet.smore.extractor;
 
+import com.snet.smore.common.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -34,5 +35,7 @@ public class BindTest {
         serverSocketChannel.bind(address); // 12345 포트를 열어줍니다.
 
         System.out.println(serverSocketChannel.isOpen());
+
+
     }
 }

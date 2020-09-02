@@ -2,6 +2,7 @@ package com.snet.smore.extractor;
 
 import com.snet.smore.common.util.CommonUtil;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class EncryptTest {
@@ -26,5 +27,11 @@ public class EncryptTest {
 
         Assert.assertEquals(username, decUsername);
         Assert.assertEquals(password, decPassword);
+    }
+
+    @Test
+    @Ignore
+    public void test2() {
+        System.out.println(CommonUtil.getEncrypt("ZTPM_DW"));
     }
 }
