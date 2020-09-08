@@ -18,7 +18,7 @@ public class MakeBinaryFile {
         int byteSize = 1234 + 1318;
         byte[] bytes = new byte[byteSize];
 
-        String root = "D:/smore/EXTRACTOR_SOURCE/tcms_sample";
+        String root = "D:/SMORE_DATA/EXTRACTOR_SOURCE/tcms_sample";
         String subDir = "10minutes";
 
         int fileCnt = 20;
@@ -28,7 +28,7 @@ public class MakeBinaryFile {
         Files.createDirectories(path);
 
         Path newPath;
-//        Random random = new Random();
+        Random random = new Random();
         for (int i = 0; i < fileCnt; i++) {
             newPath = Paths.get(root, subDir, FileStatusPrefix.TEMP.getPrefix() + "sample_" + UUID.randomUUID() + ".bin");
 
