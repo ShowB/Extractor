@@ -46,62 +46,70 @@ public class ExtractorMain {
     }
 
     private static void runAgent() {
-        final Agent agent = AgentUtil.getAgent(agentType, agentName);
+        try {
+            final Agent agent = AgentUtil.getAgent(agentType, agentName);
 
-        if (!Constant.YN_Y.equalsIgnoreCase(agent.getUseYn()))
-            return;
-
-        isRequiredPropertiesUpdate = Constant.YN_Y.equalsIgnoreCase(agent.getChangeYn());
-
-        if (isRequiredPropertiesUpdate || isFirstRun) {
-            EnvManager.reload();
-            agentName = EnvManager.getProperty("extractor.name");
-
-            log.info("Environment has successfully reloaded.");
-
-            if ("Y".equalsIgnoreCase(agent.getChangeYn()))
-                AgentUtil.setChangeYn(agentType, agentName, Constant.YN_N);
-
-            isRequiredPropertiesUpdate = false;
-        }
-
-        String mode = EnvManager.getProperty("extractor.mode").toUpperCase();
-
-        switch (mode) {
-            case "FILE":
-                new FileCopyModule().execute();
-                break;
-            case "SOCKET":
-                setIsRunningByMonitor(true);
-                new SocketReceiveModule().execute();
-                break;
-            case "RDBMS":
-                new DbReadModule().execute();
-                break;
-            default:
-                log.error("Cannot find extractor module class.");
+            if (!Constant.YN_Y.equalsIgnoreCase(agent.getUseYn()))
                 return;
-        }
 
-        if (isFirstRun)
-            isFirstRun = false;
+            isRequiredPropertiesUpdate = Constant.YN_Y.equalsIgnoreCase(agent.getChangeYn());
+
+            if (isRequiredPropertiesUpdate || isFirstRun) {
+                EnvManager.reload();
+                agentName = EnvManager.getProperty("extractor.name");
+
+                log.info("Environment has successfully reloaded.");
+
+                if ("Y".equalsIgnoreCase(agent.getChangeYn()))
+                    AgentUtil.setChangeYn(agentType, agentName, Constant.YN_N);
+
+                isRequiredPropertiesUpdate = false;
+            }
+
+            String mode = EnvManager.getProperty("extractor.mode").toUpperCase();
+
+            switch (mode) {
+                case "FILE":
+                    new FileCopyModule().execute();
+                    break;
+                case "SOCKET":
+                    setIsRunningByMonitor(true);
+                    new SocketReceiveModule().execute();
+                    break;
+                case "RDBMS":
+                    new DbReadModule().execute();
+                    break;
+                default:
+                    log.error("Cannot find extractor module class.");
+                    return;
+            }
+
+            if (isFirstRun)
+                isFirstRun = false;
+        } catch (Exception e) {
+            log.error("An error occurred while thread processing. It will be restarted : {}", e.getMessage());
+        }
     }
 
     private static void monitorForSocket() {
-        if (getIsRunningByMonitor()) {
-            final Agent agent = AgentUtil.getAgent(agentType, agentName);
-            if (Constant.YN_N.equalsIgnoreCase(agent.getUseYn())) {
-                setIsRunningByMonitor(false);
+        try {
+            if (getIsRunningByMonitor()) {
+                final Agent agent = AgentUtil.getAgent(agentType, agentName);
+                if (Constant.YN_N.equalsIgnoreCase(agent.getUseYn())) {
+                    setIsRunningByMonitor(false);
 
-                // accept() 함수의 lock을 해제하기 위해 local 접속 생성
-                try {
-                    Socket tempSocket = new Socket("127.0.0.1"
-                            , EnvManager.getProperty("extractor.source.socket.port", 50031));
-                    tempSocket.close();
-                } catch (IOException e) {
-                    log.info("Socket server is already closed.");
+                    // accept() 함수의 lock을 해제하기 위해 local 접속 생성
+                    try {
+                        Socket tempSocket = new Socket("127.0.0.1"
+                                , EnvManager.getProperty("extractor.source.socket.port", 50031));
+                        tempSocket.close();
+                    } catch (IOException e) {
+                        log.info("Socket server is already closed.");
+                    }
                 }
             }
+        } catch (Exception e) {
+            log.error("An error occurred while thread processing. It will be restarted : {}", e.getMessage());
         }
     }
 
