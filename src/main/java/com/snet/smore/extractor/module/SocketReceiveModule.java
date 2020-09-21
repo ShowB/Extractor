@@ -1,7 +1,7 @@
 package com.snet.smore.extractor.module;
 
-import com.snet.smore.common.util.EnvManager;
 import com.snet.smore.common.constant.FileStatusPrefix;
+import com.snet.smore.common.util.EnvManager;
 import com.snet.smore.extractor.main.ExtractorMain;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,7 +37,18 @@ public class SocketReceiveModule {
                     if (client != null)
                         client.close();
 
+                    log.info("Server socket will be closed after 5s.");
+                    Thread.sleep(1000);
+                    log.info("Server socket will be closed after 4s.");
+                    Thread.sleep(1000);
+                    log.info("Server socket will be closed after 3s.");
+                    Thread.sleep(1000);
+                    log.info("Server socket will be closed after 2s.");
+                    Thread.sleep(1000);
+                    log.info("Server socket will be closed after 1s.");
+                    Thread.sleep(1000);
                     server.close();
+                    log.info("Server socket is closed.");
                 }
 
             }
