@@ -1,6 +1,6 @@
 package com.snet.smore.extractor;
 
-import com.snet.smore.common.util.CommonUtil;
+import com.snet.smore.common.util.EncryptUtil;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -11,11 +11,11 @@ public class EncryptTest {
         String username = "smart";
         String password = "smart123$%^";
 
-        String encUsername = CommonUtil.getEncrypt(username);
-        String encPassword = CommonUtil.getEncrypt(password);
+        String encUsername = EncryptUtil.getEncrypt(username);
+        String encPassword = EncryptUtil.getEncrypt(password);
 
-        String decUsername = CommonUtil.getDecrypt(encUsername);
-        String decPassword = CommonUtil.getDecrypt(encPassword);
+        String decUsername = EncryptUtil.getDecrypt(encUsername);
+        String decPassword = EncryptUtil.getDecrypt(encPassword);
 
 
         System.out.println("username: \t" + username);
@@ -32,6 +32,10 @@ public class EncryptTest {
     @Test
     @Ignore
     public void test2() {
-        System.out.println(CommonUtil.getEncrypt("ZTPM_DW"));
+        System.out.println(EncryptUtil.getEncrypt("ZTPM_DW"));
+        System.out.println(EncryptUtil.getEncrypt("xvmyhzsi"));
+        System.out.println(EncryptUtil.getEncrypt("7E1lv5WSojNQwSrksqc4iTecDqC4SDjG"));
+//        factory.setUsername("xvmyhzsi");
+//        factory.setPassword("7E1lv5WSojNQwSrksqc4iTecDqC4SDjG");
     }
 }

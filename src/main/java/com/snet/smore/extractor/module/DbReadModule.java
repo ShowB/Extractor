@@ -1,11 +1,11 @@
 package com.snet.smore.extractor.module;
 
 import com.google.gson.*;
+import com.snet.smore.common.constant.FileStatusPrefix;
 import com.snet.smore.common.domain.DbInfo;
 import com.snet.smore.common.util.DbUtil;
 import com.snet.smore.common.util.EnvManager;
 import com.snet.smore.common.util.StringUtil;
-import com.snet.smore.common.constant.FileStatusPrefix;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -214,7 +214,7 @@ public class DbReadModule {
             fileChannel = FileChannel.open(newFile, StandardOpenOption.WRITE);
             fileChannel.write(ByteBuffer.wrap(str.getBytes()));
 
-            log.info("File created. --> {}", Files.move(newFile, Paths.get(root, fileName)));
+            log.info("File was created. --> {}", Files.move(newFile, Paths.get(root, fileName)));
 
         } catch (Exception e) {
             log.error("An error occurred while writing file. {}", newFile);
