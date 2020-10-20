@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ public class RabbitMQSendTest {
     private final static String QUEUE_NAME = "TCMS";
 
     @Test
+    @Ignore
     public void send() {
         ConnectionFactory factory = new ConnectionFactory();
 
